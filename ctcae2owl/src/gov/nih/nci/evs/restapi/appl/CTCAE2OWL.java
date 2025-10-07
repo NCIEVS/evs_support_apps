@@ -93,7 +93,7 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
     HashMap fullsynMap = null;
     HashMap defMap = null;
 
-    String PROPERTY_FILE = "ctcae2owl.properties";
+    //String PROPERTY_FILE = "ctcae2owl.properties";
     PropertiesReader propertiesReader = null;
 
     HashMap altDefMap = null;
@@ -104,16 +104,13 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
     public CTCAE2OWL(String serviceUrl, String named_graph, String username, String password) {
 		super(serviceUrl, named_graph, username, password);
 		this.named_graph = named_graph;
-		File f = new File(PROPERTY_FILE);
-		if (f.exists()) {
-			this.propertiesReader = new PropertiesReader(PROPERTY_FILE);
-		}
         initialize(CTCAE6_ROOT);
     }
 
     public void initialize(String root) {
 		long ms = System.currentTimeMillis();
 		this.root = root;
+
 		code2LabelMap = new HashMap();
 		boolean codeOnly = false;
 		System.out.println("getConceptsInSubset...");
@@ -149,27 +146,7 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 		}
 
 /////////////////////////////////////////////////////////////////////////////////////////////
-
-		System.out.println("getPreferredNames...");
 		preferredNameMap = new HashMap();
-		String prop_code = "P108";
-		v = getPreferredNames(named_graph, root, prop_code);
-		v = encodeHTML(v);
-		for (int i=0; i<v.size(); i++) {
-			String line = (String) v.elementAt(i);
-			Vector u = parseData(line, '|');
-			String code = (String) u.elementAt(1);
-			String preferredName = (String) u.elementAt(3);
-			Vector w = new Vector();
-			if (preferredNameMap.containsKey(code)) {
-				w = (Vector) preferredNameMap.get(code);
-			}
-			if (!w.contains(preferredName)) {
-				w.add(preferredName);
-			}
-			preferredNameMap.put(code, w);
-		}
-
 		System.out.println("getAxiomFullsyns...");
         fullsynMap = new HashMap();
 		v = getAxiomFullsyns(named_graph, root);
@@ -177,6 +154,7 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 
 		HashMap code2NCIPTMap = new HashMap();
 		HashMap code2CTCAEPTMap = new HashMap();
+
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = parseData(line, '|');
@@ -194,27 +172,14 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 
 			if (termSource.compareTo("CTCAE 6.0") == 0 && termType.compareTo("PT") == 0) {
 				code2CTCAEPTMap.put(code, termName);
+				preferredNameMap.put(code, termName);
+				code2LabelMap.put(code,termName);
+
 			} else if (termSource.compareTo("NCI") == 0 && termType.compareTo("PT") == 0) {
 				code2NCIPTMap.put(code, termName);
 			}
 			fullsynMap.put(code, w);
 		}
-
-		if (propertiesReader != null) {
-			String rdfsLabel_config = propertiesReader.getProperty("rdfs:label");
-			if (rdfsLabel_config.compareTo("P90|P384$CTCAE 6.0|P383$PT") == 0) {
-				code2LabelMap = code2CTCAEPTMap;
-			} else if (rdfsLabel_config.compareTo("P90|P384$NCI|P383$PT") == 0) {
-				code2LabelMap = code2NCIPTMap;
-			}
-			String preferredName_config = propertiesReader.getProperty("Preferred_Name");
-			if (preferredName_config.compareTo("P90|P384$CTCAE 6.0|P383$PT") == 0) {
-				preferredNameMap = code2CTCAEPTMap;
-			} else if (rdfsLabel_config.compareTo("P90|P384$NCI|P383$PT") == 0) {
-				preferredNameMap = code2NCIPTMap;
-			}
-		}
-
         System.out.println("getAxiomDef...");
         defMap = new HashMap();
         v = getAxiomDef(named_graph, root);
@@ -617,7 +582,7 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
         dataMap.put("PARENT", (Vector) parentMap.get(code));
 
         //Utils.dumpVector("PREFERRED_NAME: ", (Vector) preferredNameMap.get(code));
-        dataMap.put("PREFERRED_NAME", (Vector) preferredNameMap.get(code));
+        dataMap.put("PREFERRED_NAME", (String) preferredNameMap.get(code));
 
         //Utils.dumpVector("FULL_SYN: ", (Vector) fullsynMap.get(code));
         dataMap.put("FULL_SYN", (Vector) fullsynMap.get(code));
@@ -1094,12 +1059,12 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 			}
 		}
 		out.println("        <ncit:NHC0>" + code + "</ncit:NHC0>");
-        Vector preferredNames = (Vector) dataMap.get("PREFERRED_NAME");
-        if (preferredNames != null) {
-			for (int i=0; i<preferredNames.size(); i++) {
-				String preferredName = (String) preferredNames.elementAt(i);
+        String preferredName = (String) dataMap.get("PREFERRED_NAME");
+        if (preferredName != null) {
+			//for (int i=0; i<preferredNames.size(); i++) {
+			//	String preferredName = (String) preferredNames.elementAt(i);
 				out.println("        <ncit:P108>" + preferredName + "</ncit:P108>");
-			}
+			//}
 		}
         Vector fullsyns = (Vector) dataMap.get("FULL_SYN");
         if (fullsyns != null) {
