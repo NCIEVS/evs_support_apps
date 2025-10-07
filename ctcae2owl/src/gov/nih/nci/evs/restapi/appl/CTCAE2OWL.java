@@ -16,6 +16,57 @@ import java.util.regex.*;
 import org.json.*;
 import java.text.*;
 
+/**
+ * <!-- LICENSE_TEXT_START -->
+ * Copyright 2022 Guidehouse. This software was developed in conjunction
+ * with the National Cancer Institute, and so to the extent government
+ * employees are co-authors, any rights in such works shall be subject
+ * to Title 17 of the United States Code, section 105.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *   1. Redistributions of source code must retain the above copyright
+ *      notice, this list of conditions and the disclaimer of Article 3,
+ *      below. Redistributions in binary form must reproduce the above
+ *      copyright notice, this list of conditions and the following
+ *      disclaimer in the documentation and/or other materials provided
+ *      with the distribution.
+ *   2. The end-user documentation included with the redistribution,
+ *      if any, must include the following acknowledgment:
+ *      "This product includes software developed by Guidehouse and the National
+ *      Cancer Institute."   If no such end-user documentation is to be
+ *      included, this acknowledgment shall appear in the software itself,
+ *      wherever such third-party acknowledgments normally appear.
+ *   3. The names "The National Cancer Institute", "NCI" and "Guidehouse" must
+ *      not be used to endorse or promote products derived from this software.
+ *   4. This license does not authorize the incorporation of this software
+ *      into any third party proprietary programs. This license does not
+ *      authorize the recipient to use any trademarks owned by either NCI
+ *      or GUIDEHOUSE
+ *   5. THIS SOFTWARE IS PROVIDED "AS IS," AND ANY EXPRESSED OR IMPLIED
+ *      WARRANTIES, (INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ *      OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE) ARE
+ *      DISCLAIMED. IN NO EVENT SHALL THE NATIONAL CANCER INSTITUTE,
+ *      GUIDEHOUSE, OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *      INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *      BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *      LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *      CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *      LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *      ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *      POSSIBILITY OF SUCH DAMAGE.
+ * <!-- LICENSE_TEXT_END -->
+ */
+
+/**
+ * @author EVS Team
+ * @version 1.0
+ *
+ * Modification history:
+ *     Initial implementation kim.ong@nih.gov
+ *
+ */
+
 public class CTCAE2OWL extends BasicSPARQLUtils {
     String named_graph = null;
     String prefixes = null;
@@ -99,19 +150,6 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-rdfs:label=rdfs:label
-subClassOf=subClassOf
-subset=C220612
-Preferred_Name=P90|P384$CTCAE 6.0|P383$PT
-DEFINITION=P97|P378$NCI
-ALT_DEFINITION=P325|P378$CTCAE 6.0
-rdfs:label=P90|P384$CTCAE 6.0|P383$PT
-Maps_To=P375|P393$|P394$|P395$|P396$MedDRA|P397$28.0
-FULL_SYN=P90|P384$CTCAE 6.0|P383$PT
-FULL_SYN=P90|P384$NCI|P383$PT
-*/
-
 		System.out.println("getPreferredNames...");
 		preferredNameMap = new HashMap();
 		String prop_code = "P108";
@@ -131,8 +169,6 @@ FULL_SYN=P90|P384$NCI|P383$PT
 			}
 			preferredNameMap.put(code, w);
 		}
-
-/////////////////////////////////////////////////////////////////////////////////////////////
 
 		System.out.println("getAxiomFullsyns...");
         fullsynMap = new HashMap();
@@ -164,13 +200,6 @@ FULL_SYN=P90|P384$NCI|P383$PT
 			fullsynMap.put(code, w);
 		}
 
-		/*
-		rdfs:label=rdfs:label
-		subClassOf=subClassOf
-		subset=C220612
-Preferred_Name=P90|P384$CTCAE 6.0|P383$PT
-*/
-		//Preferred_Name=P90|P384$CTCAE 6.0|P383$PT
 		if (propertiesReader != null) {
 			String rdfsLabel_config = propertiesReader.getProperty("rdfs:label");
 			if (rdfsLabel_config.compareTo("P90|P384$CTCAE 6.0|P383$PT") == 0) {
@@ -190,10 +219,8 @@ Preferred_Name=P90|P384$CTCAE 6.0|P383$PT
         defMap = new HashMap();
         v = getAxiomDef(named_graph, root);
         v = encodeHTML(v);
-        //Utils.saveToFile("defs.txt", v);
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
-			//Grade 3 Abdominal Soft Tissue Necrosis, CTCAE|C145113|Operative debridement or other invasive intervention indicated (e.g., tissue reconstruction, flap, or grafting)|Definition Source|NCI
 			Vector u = parseData(line, '|');
 			String code = (String) u.elementAt(1);
 			String def = (String) u.elementAt(2);
@@ -210,11 +237,9 @@ Preferred_Name=P90|P384$CTCAE 6.0|P383$PT
         altDefMap = new HashMap();
         v = getAxiomAltdef(named_graph, root);
         v = encodeHTML(v);
-        //Utils.saveToFile("altdefs.txt", v);
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = parseData(line, '|');
-			//Bladder Infection, CTCAE|C143319|A disorder characterized by an infectious process involving the bladder.|Definition Source|CTCAE 6.0
 			String code = (String) u.elementAt(1);
 			String def = (String) u.elementAt(2);
 			String def_src = (String) u.elementAt(4);
@@ -232,7 +257,6 @@ Preferred_Name=P90|P384$CTCAE 6.0|P383$PT
         mapsToMap = new HashMap();
         v = getAxiomMapsto(named_graph, root);
         v = encodeHTML(v);
-        //Utils.saveToFile("MapsTo.txt", v);
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = parseData(line, '|');
@@ -609,54 +633,6 @@ Preferred_Name=P90|P384$CTCAE 6.0|P383$PT
 
         return dataMap;
 	}
-
-//row	NCIt Code	NCIt PT	NCIt Definition	CTCAE PT	CTCAE 5.0 Definition	MedDRA Term	MedDRA Code	MedDRA TermType	MedDRA Version
-
-/*
-id=NCIt Code
-MedDRA_Code=MedDRA Code
-Definition=CTCAE 5.0 Definition
-Preferred_Name=CTCAE PT
-NCIt_Code=NCIt Code
-Navigational_Note=Navigational Note
-MedDRA_SOC=MedDRA Code
-NCI_PT=NCIt PT
-NCI_Def=NCIt Definition
-
-
-    <owl:Class rdf:about="http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C143222">
-        <rdfs:subClassOf rdf:resource="http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C143174"/>
-        <ncit:ALT_DEFINITION rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A disorder characterized by laboratory test results that indicate an elevation in the concentration of phosphate in a blood.</ncit:ALT_DEFINITION>
-        <ncit:DEFINITION rdf:datatype="http://www.w3.org/2001/XMLSchema#string">    A disorder characterized by laboratory test results that indicate an elevation in the concentration of phosphate in a blood.</ncit:DEFINITION>
-        <ncit:P90 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Hyperphosphatemia</ncit:P90>
-        <ncit:P90 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Hyperphosphatemia, CTCAE</ncit:P90>
-        <ncit:MedDRA_Code rdf:datatype="http://www.w3.org/2001/XMLSchema#string">10020712</ncit:MedDRA_Code>
-        <ncit:NCIt_Code rdf:datatype="http://www.w3.org/2001/XMLSchema#string">C143222</ncit:NCIt_Code>
-        <ncit:Preferred_Name rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Hyperphosphatemia</ncit:Preferred_Name>
-        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Hyperphosphatemia</rdfs:label>
-    </owl:Class>
-*/
-
-/*
-	public HashMap generateDataMap() {
-		Vector dataReq = new Vector();
-		dataReq.add("P90|P383$PT|P384$NCI");
-		dataReq.add("P97|P378$NCI");
-		dataReq.add("P90|P383$PT|P384$CTCAE");
-		dataReq.add("P325|P378$CTCAE");
-		dataReq.add("P325|P378$CTCAE");
-		dataReq.add("A8");
-		HashMap hmap = DataRetrieval.generateMultivaluedPropMap(dataReq);
-		HashMap a8map = (HashMap) hmap.get("A8");
-		HashMap inv_a8map = DataRetrieval.generateInverseHashMap(a8map);
-        Vector req_data_vec = new Vector();
-		req_data_vec.add("P375|P396$MedDRA|P397$28.0");
-		HashMap axiomMap = AxiomRetrieval.getAxiomMap(req_data_vec);
-
-		return null;
-	}
-*/
-
 
 	public void printHeader(PrintWriter out) {
 		out.println("<?xml version=\"1.0\"?>");
@@ -1082,8 +1058,6 @@ NCI_Def=NCIt Definition
 
 	public void printContent(PrintWriter out) {
 		printAnnotationProperties(out);
-		//System.out.println("printContent...");
-		//System.out.println("code2LabelMap.keySet().size(): " + code2LabelMap.keySet().size());
         out.println("");
 		out.println("    <!-- ");
 		out.println("    ///////////////////////////////////////////////////////////////////////////////////////");

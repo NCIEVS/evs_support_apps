@@ -29,7 +29,4 @@ public class PropertiesReader {
 		return (String) properties.get(key);
 	}
 
-    public static void main(String[] args) {
-		PropertiesReader reader = new PropertiesReader("ctcae2owl.properties");
-	}
 }

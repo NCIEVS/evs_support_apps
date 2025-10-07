@@ -198,28 +198,6 @@ public class RESTUtils {
 		}
 		return v;
 	}
-
-    public static void main(String[] args) {
-		long ms = System.currentTimeMillis();
-		String restURL = args[0];
-		String queryfile = args[1];
-		String username = null;
-		String password = null;
-		String query = loadQuery(queryfile);
-		long readTimeout = 60000;
-		long connectTimeout = 60000;
-
-		RESTUtils restUtils =
-		  new RESTUtils(username, password, readTimeout, connectTimeout);
-
-		String json = restUtils.runSPARQL(query, restURL);
-		System.out.println(json);
-
-        JSONUtils jsonUtils = new JSONUtils();
-		Vector w = jsonUtils.parseJSON(json);
-        w = jsonUtils.getResponseValues(w);
-
-	}
-
 }
+
 

@@ -6,10 +6,10 @@
     <!-- Will be ignored if available above -->
 	<property name="one-jar.dir" location="one-jar" />
     <import file="${one-jar.dir}/build.onejar.xml"/>
-    
 	<property name="eclipse.jar-in-jar.dir" value="build-lib/eclipse"/>
 	<property name="temp.dir" value="temp" />	
     <path id="libraries">
+    	<fileset dir="../lib" includes="*.jar"/>
     	<fileset dir="lib" includes="*.jar"/>
     </path>
     
