@@ -50,18 +50,11 @@
             </main>
             <lib>
                 <fileset dir="lib" includes="*.jar" />
+                <fileset dir="../lib" includes="*.jar" />
             </lib>
 		</one-jar>
 	</target>
 
     <property name="formatter" value="xml" />
-
-    <target name="run.ctcae2owl" depends="build" description="Run a One-Jar ctcae2owl">
-        <java fork="true" jar="build/ctcae2owl.jar"/>
-    </target>
-
-	<target name="test.ctcae2owl" depends="build" description="Stand-alone test a One-Jar ctcae2owl">
-        <java fork="true" jar="build/test-ctcae2owl.jar"/>
-    </target>
 	
 </project>

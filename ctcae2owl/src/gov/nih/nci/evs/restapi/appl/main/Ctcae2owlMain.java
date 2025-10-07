@@ -17,7 +17,7 @@ public class Ctcae2owlMain {
 		long ms = System.currentTimeMillis();
 		if (args.length != 4) {
 			System.out.println("USAGE: java -Xms512m -Xmx4g -jar ctcae2owl.jar <serviceUrl> <namedGraph> <username> <password>");
-			Systm.exit(1);
+			System.exit(1);
 		}
 		String serviceUrl = args[0];
 		String named_graph = args[1];
