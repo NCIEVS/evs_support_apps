@@ -76,8 +76,12 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
     String NCIT_ID = "NHC0";
     String named_graph_id = ":NHC0";
     String NCIT_NS = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
-    String CTCAE6_NS = "http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl";
-    String CTCAE6_ROOT = "C220612";
+
+    String CTCAE_NS = "http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl";
+    String CTCAE_VERSION = "CTCAE 6.0";
+    String CTCAE_ROOT = "C220612";
+    String MedDRA_Version = "28.0";
+
     String RELEASE_DATE = getToday();
 
     String username = null;
@@ -93,24 +97,41 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
     HashMap fullsynMap = null;
     HashMap defMap = null;
 
-    //String PROPERTY_FILE = "ctcae2owl.properties";
+    String PROPERTY_FILE = "CTCAE2OWL.properties";
     PropertiesReader propertiesReader = null;
 
     HashMap altDefMap = null;
     HashMap mapsToMap = null;
 
-    static String CTCAE6_DESCRIPTION = "Common Terminology Criteria for Adverse Events (CTCAE) is widely accepted throughout the oncology community as the standard classification and severity grading scale for adverse events in cancer therapy clinical trials and other oncology settings. Version 6 was released by the NCI Cancer Therapy Evaluation Program (CTEP) in 2025. It is organized by MedDRA System Organ Class and mapped to MedDRA LLTs with corresponding MedDRA codes, and harmonized with MedDRA at the Adverse Event (AE) level including revised AE terms and severity indicators to reflect clinical effects identified with current oncology interventions.Severity grades are assigned and most are defined to clarify the meaning of the term. CTCAE is designed to integrate into information networks for safety data exchange, and is the primary standard for data management for AE data collection, analysis, and patient outcomes associated with cancer research and care.";
+    static String CTCAE_DESCRIPTION = "Common Terminology Criteria for Adverse Events (CTCAE) is widely accepted throughout the oncology community as the standard classification and severity grading scale for adverse events in cancer therapy clinical trials and other oncology settings. Version 6 was released by the NCI Cancer Therapy Evaluation Program (CTEP) in 2025. It is organized by MedDRA System Organ Class and mapped to MedDRA LLTs with corresponding MedDRA codes, and harmonized with MedDRA at the Adverse Event (AE) level including revised AE terms and severity indicators to reflect clinical effects identified with current oncology interventions.Severity grades are assigned and most are defined to clarify the meaning of the term. CTCAE is designed to integrate into information networks for safety data exchange, and is the primary standard for data management for AE data collection, analysis, and patient outcomes associated with cancer research and care.";
 
     public CTCAE2OWL(String serviceUrl, String named_graph, String username, String password) {
 		super(serviceUrl, named_graph, username, password);
 		this.named_graph = named_graph;
-        initialize(CTCAE6_ROOT);
+        initialize(CTCAE_ROOT);
     }
+
+    public void setCTCAENameSpace(String ns) {
+		this.CTCAE_NS = ns;
+	}
 
     public void initialize(String root) {
 		long ms = System.currentTimeMillis();
-		this.root = root;
 
+		File f = new File(PROPERTY_FILE);
+		if (f.exists()) {
+			propertiesReader = new PropertiesReader(PROPERTY_FILE);
+			CTCAE_NS = propertiesReader.getProperty("CTCAE_NS");
+			CTCAE_VERSION = propertiesReader.getProperty("CTCAE_VERSION");
+			CTCAE_ROOT = propertiesReader.getProperty("CTCAE_ROOT");
+			MedDRA_Version = propertiesReader.getProperty("MedDRA_Version");
+			System.out.println("CTCAE_NS: " + CTCAE_NS);
+			System.out.println("CTCAE_VERSION: " + CTCAE_VERSION);
+			System.out.println("CTCAE_ROOT: " + CTCAE_ROOT);
+			System.out.println("MedDRA_Version: " + MedDRA_Version);
+		}
+
+		this.root = root;
 		code2LabelMap = new HashMap();
 		boolean codeOnly = false;
 		System.out.println("getConceptsInSubset...");
@@ -166,11 +187,11 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 			if (fullsynMap.containsKey(code)) {
 				w = (Vector) fullsynMap.get(code);
 			}
-			if (termSource.compareTo("CTCAE 6.0") == 0 || (termSource.compareTo("NCI") == 0 && termType.compareTo("PT") == 0)) {
-					w.add(termName + "|" + termSource + "|" + termType);
+			if (termSource.compareTo(CTCAE_VERSION) == 0 || (termSource.compareTo("NCI") == 0 && termType.compareTo("PT") == 0)) {
+				w.add(termName + "|" + termSource + "|" + termType);
 			}
 
-			if (termSource.compareTo("CTCAE 6.0") == 0 && termType.compareTo("PT") == 0) {
+			if (termSource.compareTo(CTCAE_VERSION) == 0 && termType.compareTo("PT") == 0) {
 				code2CTCAEPTMap.put(code, termName);
 				preferredNameMap.put(code, termName);
 				code2LabelMap.put(code,termName);
@@ -208,7 +229,7 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 			String code = (String) u.elementAt(1);
 			String def = (String) u.elementAt(2);
 			String def_src = (String) u.elementAt(4);
-			if (def_src.compareTo("CTCAE 6.0") == 0) {
+			if (def_src.compareTo(CTCAE_VERSION) == 0) {
 				Vector w = new Vector();
 				if (altDefMap.containsKey(code)) {
 					w = (Vector) altDefMap.get(code);
@@ -233,7 +254,7 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 			String p396 = (String) u.elementAt(10);
 			String p397 = (String) u.elementAt(12);
 
-			if (p397.compareTo("28.0") == 0) {
+			if (p397.compareTo(MedDRA_Version) == 0) {
 				Vector w = new Vector();
 				if (mapsToMap.containsKey(code)) {
 					w = (Vector) mapsToMap.get(code);
@@ -601,8 +622,8 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 
 	public void printHeader(PrintWriter out) {
 		out.println("<?xml version=\"1.0\"?>");
-		out.println("<rdf:RDF xmlns=\"http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#\"");
-		out.println("     xml:base=\"http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl\"");
+		out.println("<rdf:RDF xmlns=\"" + CTCAE_NS + "#\"");
+		out.println("     xml:base=\"" + CTCAE_NS + "\"");
 		out.println("     xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"");
 		out.println("     xmlns:owl=\"http://www.w3.org/2002/07/owl#\"");
 		out.println("     xmlns:xml=\"http://www.w3.org/XML/1998/namespace\"");
@@ -612,11 +633,12 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 		out.println("     xmlns:protege=\"http://protege.stanford.edu/plugins/owl/protege#\"");
 		out.println("     xmlns:dc=\"http://purl.org/dc/elements/1.1/\">");
 
-		out.println("    <owl:Ontology rdf:about=\"http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl\">");
+		out.println("    <owl:Ontology rdf:about=\"" + CTCAE_NS + "\">");
 		out.println("        <dc:date>" + RELEASE_DATE + "</dc:date>");
-		out.println("        <owl:versionInfo>6.0</owl:versionInfo>");
+		String version = CTCAE_VERSION.replace("CTCAE ", "");
+		out.println("        <owl:versionInfo>" + version + "</owl:versionInfo>");
 		out.println("        <protege:defaultLanguage>en</protege:defaultLanguage>");
-		out.println("        <rdfs:comment>" + CTCAE6_DESCRIPTION + "</rdfs:comment>");
+		out.println("        <rdfs:comment>" + CTCAE_DESCRIPTION + "</rdfs:comment>");
 		out.println("    </owl:Ontology>");
 		out.println("    ");
 	}
@@ -1048,14 +1070,14 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 	public void printClassData(PrintWriter out, String code) {
 		HashMap dataMap = getClassData(code);
 		out.println("");
-		out.println("    <!-- http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#" + code + " -->");
+		out.println("    <!-- " + CTCAE_NS + "#" + code + " -->");
 		out.println("");
-		out.println("    <owl:Class rdf:about=\"http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#" + code + "\">");
+		out.println("    <owl:Class rdf:about=\"" + CTCAE_NS + "#" + code + "\">");
         Vector parents = (Vector) dataMap.get("PARENT");
         if (parents != null) {
 			for (int i=0; i<parents.size(); i++) {
 				String parentCode = (String) parents.elementAt(i);
-                out.println("\t<rdfs:subClassOf rdf:resource=\"http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#" + parentCode + "\"/>");
+                out.println("\t<rdfs:subClassOf rdf:resource=\"" + CTCAE_NS + "#" + parentCode + "\"/>");
 			}
 		}
 		out.println("        <ncit:NHC0>" + code + "</ncit:NHC0>");
@@ -1118,7 +1140,7 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 				String termType = (String) u.elementAt(2);
 
 		out.println("    <owl:Axiom>");
-		out.println("        <owl:annotatedSource rdf:resource=\"http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#" + code + "\"/>");
+		out.println("        <owl:annotatedSource rdf:resource=\"" + CTCAE_NS + "#" + code + "\"/>");
 		out.println("        <owl:annotatedProperty rdf:resource=\"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#P90\"/>");
 		out.println("        <owl:annotatedTarget rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">" + termName + "</owl:annotatedTarget>");
 		out.println("        <ncit:P383 rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">" + termType + "</ncit:P383>");
@@ -1136,7 +1158,7 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 				String def_src = (String) u.elementAt(1);
 
 		out.println("    <owl:Axiom>");
-		out.println("        <owl:annotatedSource rdf:resource=\"http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#" + code + "\"/>");
+		out.println("        <owl:annotatedSource rdf:resource=\"" + CTCAE_NS + "#" + code + "\"/>");
 		out.println("        <owl:annotatedProperty rdf:resource=\"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#P97\"/>");
 		out.println("        <owl:annotatedTarget rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">" + def + "</owl:annotatedTarget>");
 		out.println("        <ncit:P378 rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">" + def_src + "</ncit:P378>");
@@ -1153,7 +1175,7 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 				String def_src = (String) u.elementAt(1);
 
 		out.println("    <owl:Axiom>");
-		out.println("        <owl:annotatedSource rdf:resource=\"http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#" + code + "\"/>");
+		out.println("        <owl:annotatedSource rdf:resource=\"" + CTCAE_NS + "#" + code + "\"/>");
 		out.println("        <owl:annotatedProperty rdf:resource=\"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#P325\"/>");
 		out.println("        <owl:annotatedTarget rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">" + def + "</owl:annotatedTarget>");
 		out.println("        <ncit:P378 rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">" + def_src + "</ncit:P378>");
@@ -1175,7 +1197,7 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 				String p397 = (String) u.elementAt(5);
 
 		out.println("    <owl:Axiom>");
-		out.println("        <owl:annotatedSource rdf:resource=\"http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#" + code + "\"/>");
+		out.println("        <owl:annotatedSource rdf:resource=\"" + CTCAE_NS + "#" + code + "\"/>");
 		out.println("        <owl:annotatedProperty rdf:resource=\"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#P375\"/>");
 		out.println("        <owl:annotatedTarget rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">" + target + "</owl:annotatedTarget>");
 		out.println("        <ncit:P393 rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">" + p393 + "</ncit:P393>");
@@ -1260,5 +1282,11 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 
 }
 
-
+/*
+Sample ctcae2owl.properties
+CTCAE_NS=http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl
+CTCAE_VERSION=CTCAE 6.0
+CTCAE_ROOT=C220612
+MedDRA_Version=28.0
+*/
 
