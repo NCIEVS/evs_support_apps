@@ -16,57 +16,6 @@ import java.util.regex.*;
 import org.json.*;
 import java.text.*;
 
-/**
- * <!-- LICENSE_TEXT_START -->
- * Copyright 2022 Guidehouse. This software was developed in conjunction
- * with the National Cancer Institute, and so to the extent government
- * employees are co-authors, any rights in such works shall be subject
- * to Title 17 of the United States Code, section 105.
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *   1. Redistributions of source code must retain the above copyright
- *      notice, this list of conditions and the disclaimer of Article 3,
- *      below. Redistributions in binary form must reproduce the above
- *      copyright notice, this list of conditions and the following
- *      disclaimer in the documentation and/or other materials provided
- *      with the distribution.
- *   2. The end-user documentation included with the redistribution,
- *      if any, must include the following acknowledgment:
- *      "This product includes software developed by Guidehouse and the National
- *      Cancer Institute."   If no such end-user documentation is to be
- *      included, this acknowledgment shall appear in the software itself,
- *      wherever such third-party acknowledgments normally appear.
- *   3. The names "The National Cancer Institute", "NCI" and "Guidehouse" must
- *      not be used to endorse or promote products derived from this software.
- *   4. This license does not authorize the incorporation of this software
- *      into any third party proprietary programs. This license does not
- *      authorize the recipient to use any trademarks owned by either NCI
- *      or GUIDEHOUSE
- *   5. THIS SOFTWARE IS PROVIDED "AS IS," AND ANY EXPRESSED OR IMPLIED
- *      WARRANTIES, (INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- *      OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE) ARE
- *      DISCLAIMED. IN NO EVENT SHALL THE NATIONAL CANCER INSTITUTE,
- *      GUIDEHOUSE, OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT,
- *      INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *      BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *      LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *      CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *      LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *      ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *      POSSIBILITY OF SUCH DAMAGE.
- * <!-- LICENSE_TEXT_END -->
- */
-
-/**
- * @author EVS Team
- * @version 1.0
- *
- * Modification history:
- *     Initial implementation kim.ong@nih.gov
- *
- */
-
 public class CTCAE2OWL extends BasicSPARQLUtils {
     String named_graph = null;
     String prefixes = null;
@@ -76,12 +25,8 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
     String NCIT_ID = "NHC0";
     String named_graph_id = ":NHC0";
     String NCIT_NS = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
-
-    String CTCAE_NS = "http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl";
-    String CTCAE_VERSION = "CTCAE 6.0";
-    String CTCAE_ROOT = "C220612";
-    String MedDRA_Version = "28.0";
-
+    String CTCAE6_NS = "http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl";
+    String CTCAE6_ROOT = "C220612";
     String RELEASE_DATE = getToday();
 
     String username = null;
@@ -97,45 +42,33 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
     HashMap fullsynMap = null;
     HashMap defMap = null;
 
-    String PROPERTY_FILE = "CTCAE2OWL.properties";
+    String PROPERTY_FILE = "ctcae2owl.properties";
     PropertiesReader propertiesReader = null;
 
     HashMap altDefMap = null;
     HashMap mapsToMap = null;
 
-    static String CTCAE_DESCRIPTION = "Common Terminology Criteria for Adverse Events (CTCAE) is widely accepted throughout the oncology community as the standard classification and severity grading scale for adverse events in cancer therapy clinical trials and other oncology settings. Version 6 was released by the NCI Cancer Therapy Evaluation Program (CTEP) in 2025. It is organized by MedDRA System Organ Class and mapped to MedDRA LLTs with corresponding MedDRA codes, and harmonized with MedDRA at the Adverse Event (AE) level including revised AE terms and severity indicators to reflect clinical effects identified with current oncology interventions.Severity grades are assigned and most are defined to clarify the meaning of the term. CTCAE is designed to integrate into information networks for safety data exchange, and is the primary standard for data management for AE data collection, analysis, and patient outcomes associated with cancer research and care.";
+    static String CTCAE6_DESCRIPTION = "Common Terminology Criteria for Adverse Events (CTCAE) is widely accepted throughout the oncology community as the standard classification and severity grading scale for adverse events in cancer therapy clinical trials and other oncology settings. Version 6 was released by the NCI Cancer Therapy Evaluation Program (CTEP) in 2025. It is organized by MedDRA System Organ Class and mapped to MedDRA LLTs with corresponding MedDRA codes, and harmonized with MedDRA at the Adverse Event (AE) level including revised AE terms and severity indicators to reflect clinical effects identified with current oncology interventions.Severity grades are assigned and most are defined to clarify the meaning of the term. CTCAE is designed to integrate into information networks for safety data exchange, and is the primary standard for data management for AE data collection, analysis, and patient outcomes associated with cancer research and care.";
 
     public CTCAE2OWL(String serviceUrl, String named_graph, String username, String password) {
 		super(serviceUrl, named_graph, username, password);
 		this.named_graph = named_graph;
-        initialize(CTCAE_ROOT);
+		File f = new File(PROPERTY_FILE);
+		if (f.exists()) {
+			this.propertiesReader = new PropertiesReader(PROPERTY_FILE);
+		}
+        initialize(CTCAE6_ROOT);
     }
-
-    public void setCTCAENameSpace(String ns) {
-		this.CTCAE_NS = ns;
-	}
 
     public void initialize(String root) {
 		long ms = System.currentTimeMillis();
-
-		File f = new File(PROPERTY_FILE);
-		if (f.exists()) {
-			propertiesReader = new PropertiesReader(PROPERTY_FILE);
-			CTCAE_NS = propertiesReader.getProperty("CTCAE_NS");
-			CTCAE_VERSION = propertiesReader.getProperty("CTCAE_VERSION");
-			CTCAE_ROOT = propertiesReader.getProperty("CTCAE_ROOT");
-			MedDRA_Version = propertiesReader.getProperty("MedDRA_Version");
-			System.out.println("CTCAE_NS: " + CTCAE_NS);
-			System.out.println("CTCAE_VERSION: " + CTCAE_VERSION);
-			System.out.println("CTCAE_ROOT: " + CTCAE_ROOT);
-			System.out.println("MedDRA_Version: " + MedDRA_Version);
-		}
-
 		this.root = root;
 		code2LabelMap = new HashMap();
 		boolean codeOnly = false;
 		System.out.println("getConceptsInSubset...");
-		Vector v = getConceptsInSubset(named_graph, root, codeOnly);
+		Vector v = null;//
+		/*
+		v = getConceptsInSubset(named_graph, root, codeOnly);
 		System.out.println("Subset size: " + v.size());
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
@@ -145,6 +78,7 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 			label = encodeHTML(label);
 			code2LabelMap.put(code, label);
 		}
+		*/
 
 		System.out.println("getParents...");
 		parentMap = new HashMap();
@@ -167,7 +101,46 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 		}
 
 /////////////////////////////////////////////////////////////////////////////////////////////
+
+/*
+rdfs:label=rdfs:label
+subClassOf=subClassOf
+subset=C220612
+Preferred_Name=P90|P384$CTCAE 6.0|P383$PT
+DEFINITION=P97|P378$NCI
+ALT_DEFINITION=P325|P378$CTCAE 6.0
+rdfs:label=P90|P384$CTCAE 6.0|P383$PT
+Maps_To=P375|P393$|P394$|P395$|P396$MedDRA|P397$28.0
+FULL_SYN=P90|P384$CTCAE 6.0|P383$PT
+FULL_SYN=P90|P384$NCI|P383$PT
+*/
+
+		System.out.println("getPreferredNames...");
 		preferredNameMap = new HashMap();
+		//String prop_code = "P108";
+
+		v = getPreferredNames(named_graph, root);//, prop_code);
+		v = encodeHTML(v);
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = parseData(line, '|');
+			String code = (String) u.elementAt(1);
+			String preferredName = (String) u.elementAt(2);
+
+			Vector w = new Vector();
+			if (preferredNameMap.containsKey(code)) {
+				w = (Vector) preferredNameMap.get(code);
+			}
+			if (!w.contains(preferredName)) {
+				w.add(preferredName);
+			}
+			preferredNameMap.put(code, w);
+			String label = (String) w.elementAt(0);
+			code2LabelMap.put(code, label);
+		}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+
 		System.out.println("getAxiomFullsyns...");
         fullsynMap = new HashMap();
 		v = getAxiomFullsyns(named_graph, root);
@@ -175,7 +148,6 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 
 		HashMap code2NCIPTMap = new HashMap();
 		HashMap code2CTCAEPTMap = new HashMap();
-
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = parseData(line, '|');
@@ -187,26 +159,48 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 			if (fullsynMap.containsKey(code)) {
 				w = (Vector) fullsynMap.get(code);
 			}
-			if (termSource.compareTo(CTCAE_VERSION) == 0 || (termSource.compareTo("NCI") == 0 && termType.compareTo("PT") == 0)) {
-				w.add(termName + "|" + termSource + "|" + termType);
+			if (termSource.compareTo("CTCAE 6.0") == 0 || (termSource.compareTo("NCI") == 0 && termType.compareTo("PT") == 0)) {
+					w.add(termName + "|" + termSource + "|" + termType);
 			}
 
-			if (termSource.compareTo(CTCAE_VERSION) == 0 && termType.compareTo("PT") == 0) {
+			if (termSource.compareTo("CTCAE 6.0") == 0 && termType.compareTo("PT") == 0) {
 				code2CTCAEPTMap.put(code, termName);
-				preferredNameMap.put(code, termName);
-				code2LabelMap.put(code,termName);
-
 			} else if (termSource.compareTo("NCI") == 0 && termType.compareTo("PT") == 0) {
 				code2NCIPTMap.put(code, termName);
 			}
 			fullsynMap.put(code, w);
 		}
+
+		/*
+		rdfs:label=rdfs:label
+		subClassOf=subClassOf
+		subset=C220612
+Preferred_Name=P90|P384$CTCAE 6.0|P383$PT
+*/
+		//Preferred_Name=P90|P384$CTCAE 6.0|P383$PT
+		if (propertiesReader != null) {
+			String rdfsLabel_config = propertiesReader.getProperty("rdfs:label");
+			if (rdfsLabel_config.compareTo("P90|P384$CTCAE 6.0|P383$PT") == 0) {
+				code2LabelMap = code2CTCAEPTMap;
+			} else if (rdfsLabel_config.compareTo("P90|P384$NCI|P383$PT") == 0) {
+				code2LabelMap = code2NCIPTMap;
+			}
+			String preferredName_config = propertiesReader.getProperty("Preferred_Name");
+			if (preferredName_config.compareTo("P90|P384$CTCAE 6.0|P383$PT") == 0) {
+				preferredNameMap = code2CTCAEPTMap;
+			} else if (rdfsLabel_config.compareTo("P90|P384$NCI|P383$PT") == 0) {
+				preferredNameMap = code2NCIPTMap;
+			}
+		}
+
         System.out.println("getAxiomDef...");
         defMap = new HashMap();
         v = getAxiomDef(named_graph, root);
         v = encodeHTML(v);
+        //Utils.saveToFile("defs.txt", v);
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
+			//Grade 3 Abdominal Soft Tissue Necrosis, CTCAE|C145113|Operative debridement or other invasive intervention indicated (e.g., tissue reconstruction, flap, or grafting)|Definition Source|NCI
 			Vector u = parseData(line, '|');
 			String code = (String) u.elementAt(1);
 			String def = (String) u.elementAt(2);
@@ -223,13 +217,15 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
         altDefMap = new HashMap();
         v = getAxiomAltdef(named_graph, root);
         v = encodeHTML(v);
+        //Utils.saveToFile("altdefs.txt", v);
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = parseData(line, '|');
+			//Bladder Infection, CTCAE|C143319|A disorder characterized by an infectious process involving the bladder.|Definition Source|CTCAE 6.0
 			String code = (String) u.elementAt(1);
 			String def = (String) u.elementAt(2);
 			String def_src = (String) u.elementAt(4);
-			if (def_src.compareTo(CTCAE_VERSION) == 0) {
+			if (def_src.compareTo("CTCAE 6.0") == 0) {
 				Vector w = new Vector();
 				if (altDefMap.containsKey(code)) {
 					w = (Vector) altDefMap.get(code);
@@ -243,6 +239,7 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
         mapsToMap = new HashMap();
         v = getAxiomMapsto(named_graph, root);
         v = encodeHTML(v);
+        //Utils.saveToFile("MapsTo.txt", v);
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = parseData(line, '|');
@@ -254,7 +251,7 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 			String p396 = (String) u.elementAt(10);
 			String p397 = (String) u.elementAt(12);
 
-			if (p397.compareTo(MedDRA_Version) == 0) {
+			if (p397.compareTo("28.0") == 0) {
 				Vector w = new Vector();
 				if (mapsToMap.containsKey(code)) {
 					w = (Vector) mapsToMap.get(code);
@@ -343,13 +340,22 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 		if (v.size() == 0) return v;
 		return new SortUtils().quickSort(v);
 	}
+/*
+    <owl:Axiom>
+        <owl:annotatedSource rdf:resource="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C143411"/>
+        <owl:annotatedProperty rdf:resource="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#P90"/>
+        <owl:annotatedTarget>Dry mouth</owl:annotatedTarget>
+        <P383>PT</P383>
+        <P384>CTCAE 6.0</P384>
+    </owl:Axiom>
+*/
 
-
-	public String construct_get_preferrednames(String named_graph, String subsetcode, String prop_code) {
+	public String construct_get_preferrednames(String named_graph, String subsetcode) {//, String prop_code) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
-		buf.append("select distinct ?x_label ?x_code ?p2_code ?p2_value ").append("\n");
+		//buf.append("select distinct ?x_label ?x_code ?p2_code ?p2_value ").append("\n");
+		buf.append("select distinct ?x_label ?x_code ?a_target ").append("\n");
 		buf.append("from <" + named_graph + ">").append("\n");
 		buf.append("where  { ").append("\n");
 		buf.append("            ?x a owl:Class .").append("\n");
@@ -365,18 +371,37 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 		buf.append("            ?p rdfs:label ?p_label .").append("\n");
 		buf.append("            ?p rdfs:label \"Concept_In_Subset\"^^xsd:string .").append("\n");
 		buf.append("").append("\n");
+		/*
 		buf.append("                ?p2 a owl:AnnotationProperty .").append("\n");
 		buf.append("                ?p2 :NHC0 ?p2_code .").append("\n");
 		buf.append("                ?p2 :NHC0 \"" + prop_code + "\"^^xsd:string .").append("\n");
 		buf.append("                ?x ?p2 ?p2_value .").append("\n");
+		*/
+
+		buf.append("                ?a1 a owl:Axiom .").append("\n");
+		buf.append("                ?a1 owl:annotatedSource ?x .").append("\n");
+		buf.append("                ?a1 owl:annotatedProperty ?p2 .").append("\n");
+		buf.append("                ?p2 :NHC0 \"P90\"^^xsd:string .").append("\n");
+		buf.append("                ?a1 owl:annotatedTarget ?a_target .").append("\n");
+		buf.append("").append("\n");
+		buf.append("                ?q1 :NHC0 \"P384\"^^xsd:string .").append("\n");
+		buf.append("                ?q1 rdfs:label ?q1_label .").append("\n");
+		buf.append("                ?a1 ?q1 \"CTCAE 6.0\"^^xsd:string .").append("\n");
+		buf.append("").append("\n");
+		buf.append("                ?q2 :NHC0 \"P383\"^^xsd:string .  ").append("\n");
+		buf.append("                ?q2 rdfs:label ?q2_label . ").append("\n");
+		buf.append("                ?a1 ?q2 \"PT\"^^xsd:string .").append("\n");
+
 		buf.append("}").append("\n");
 		buf.append("").append("\n");
 		return buf.toString();
 	}
 
 
-	public Vector getPreferredNames(String named_graph, String subsetcode, String prop_code) {
-		String query = construct_get_preferrednames(named_graph, subsetcode, prop_code);
+//	public Vector getPreferredNames(String named_graph, String subsetcode, String prop_code) {
+//		String query = construct_get_preferrednames(named_graph, subsetcode, prop_code);
+	public Vector getPreferredNames(String named_graph, String subsetcode) {
+		String query = construct_get_preferrednames(named_graph, subsetcode);
 		Vector v = executeQuery(query);
 		if (v == null) return null;
 		if (v.size() == 0) return v;
@@ -603,7 +628,7 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
         dataMap.put("PARENT", (Vector) parentMap.get(code));
 
         //Utils.dumpVector("PREFERRED_NAME: ", (Vector) preferredNameMap.get(code));
-        dataMap.put("PREFERRED_NAME", (String) preferredNameMap.get(code));
+        dataMap.put("PREFERRED_NAME", (Vector) preferredNameMap.get(code));
 
         //Utils.dumpVector("FULL_SYN: ", (Vector) fullsynMap.get(code));
         dataMap.put("FULL_SYN", (Vector) fullsynMap.get(code));
@@ -620,10 +645,58 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
         return dataMap;
 	}
 
+//row	NCIt Code	NCIt PT	NCIt Definition	CTCAE PT	CTCAE 5.0 Definition	MedDRA Term	MedDRA Code	MedDRA TermType	MedDRA Version
+
+/*
+id=NCIt Code
+MedDRA_Code=MedDRA Code
+Definition=CTCAE 5.0 Definition
+Preferred_Name=CTCAE PT
+NCIt_Code=NCIt Code
+Navigational_Note=Navigational Note
+MedDRA_SOC=MedDRA Code
+NCI_PT=NCIt PT
+NCI_Def=NCIt Definition
+
+
+    <owl:Class rdf:about="http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C143222">
+        <rdfs:subClassOf rdf:resource="http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C143174"/>
+        <ncit:ALT_DEFINITION rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A disorder characterized by laboratory test results that indicate an elevation in the concentration of phosphate in a blood.</ncit:ALT_DEFINITION>
+        <ncit:DEFINITION rdf:datatype="http://www.w3.org/2001/XMLSchema#string">    A disorder characterized by laboratory test results that indicate an elevation in the concentration of phosphate in a blood.</ncit:DEFINITION>
+        <ncit:P90 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Hyperphosphatemia</ncit:P90>
+        <ncit:P90 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Hyperphosphatemia, CTCAE</ncit:P90>
+        <ncit:MedDRA_Code rdf:datatype="http://www.w3.org/2001/XMLSchema#string">10020712</ncit:MedDRA_Code>
+        <ncit:NCIt_Code rdf:datatype="http://www.w3.org/2001/XMLSchema#string">C143222</ncit:NCIt_Code>
+        <ncit:Preferred_Name rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Hyperphosphatemia</ncit:Preferred_Name>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Hyperphosphatemia</rdfs:label>
+    </owl:Class>
+*/
+
+/*
+	public HashMap generateDataMap() {
+		Vector dataReq = new Vector();
+		dataReq.add("P90|P383$PT|P384$NCI");
+		dataReq.add("P97|P378$NCI");
+		dataReq.add("P90|P383$PT|P384$CTCAE");
+		dataReq.add("P325|P378$CTCAE");
+		dataReq.add("P325|P378$CTCAE");
+		dataReq.add("A8");
+		HashMap hmap = DataRetrieval.generateMultivaluedPropMap(dataReq);
+		HashMap a8map = (HashMap) hmap.get("A8");
+		HashMap inv_a8map = DataRetrieval.generateInverseHashMap(a8map);
+        Vector req_data_vec = new Vector();
+		req_data_vec.add("P375|P396$MedDRA|P397$28.0");
+		HashMap axiomMap = AxiomRetrieval.getAxiomMap(req_data_vec);
+
+		return null;
+	}
+*/
+
+
 	public void printHeader(PrintWriter out) {
 		out.println("<?xml version=\"1.0\"?>");
-		out.println("<rdf:RDF xmlns=\"" + CTCAE_NS + "#\"");
-		out.println("     xml:base=\"" + CTCAE_NS + "\"");
+		out.println("<rdf:RDF xmlns=\"http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#\"");
+		out.println("     xml:base=\"http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl\"");
 		out.println("     xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"");
 		out.println("     xmlns:owl=\"http://www.w3.org/2002/07/owl#\"");
 		out.println("     xmlns:xml=\"http://www.w3.org/XML/1998/namespace\"");
@@ -633,12 +706,11 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 		out.println("     xmlns:protege=\"http://protege.stanford.edu/plugins/owl/protege#\"");
 		out.println("     xmlns:dc=\"http://purl.org/dc/elements/1.1/\">");
 
-		out.println("    <owl:Ontology rdf:about=\"" + CTCAE_NS + "\">");
+		out.println("    <owl:Ontology rdf:about=\"http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl\">");
 		out.println("        <dc:date>" + RELEASE_DATE + "</dc:date>");
-		String version = CTCAE_VERSION.replace("CTCAE ", "");
-		out.println("        <owl:versionInfo>" + version + "</owl:versionInfo>");
+		out.println("        <owl:versionInfo>6.0</owl:versionInfo>");
 		out.println("        <protege:defaultLanguage>en</protege:defaultLanguage>");
-		out.println("        <rdfs:comment>" + CTCAE_DESCRIPTION + "</rdfs:comment>");
+		out.println("        <rdfs:comment>" + CTCAE6_DESCRIPTION + "</rdfs:comment>");
 		out.println("    </owl:Ontology>");
 		out.println("    ");
 	}
@@ -1045,6 +1117,8 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 
 	public void printContent(PrintWriter out) {
 		printAnnotationProperties(out);
+		//System.out.println("printContent...");
+		//System.out.println("code2LabelMap.keySet().size(): " + code2LabelMap.keySet().size());
         out.println("");
 		out.println("    <!-- ");
 		out.println("    ///////////////////////////////////////////////////////////////////////////////////////");
@@ -1070,23 +1144,23 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 	public void printClassData(PrintWriter out, String code) {
 		HashMap dataMap = getClassData(code);
 		out.println("");
-		out.println("    <!-- " + CTCAE_NS + "#" + code + " -->");
+		out.println("    <!-- http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#" + code + " -->");
 		out.println("");
-		out.println("    <owl:Class rdf:about=\"" + CTCAE_NS + "#" + code + "\">");
+		out.println("    <owl:Class rdf:about=\"http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#" + code + "\">");
         Vector parents = (Vector) dataMap.get("PARENT");
         if (parents != null) {
 			for (int i=0; i<parents.size(); i++) {
 				String parentCode = (String) parents.elementAt(i);
-                out.println("\t<rdfs:subClassOf rdf:resource=\"" + CTCAE_NS + "#" + parentCode + "\"/>");
+                out.println("\t<rdfs:subClassOf rdf:resource=\"http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#" + parentCode + "\"/>");
 			}
 		}
 		out.println("        <ncit:NHC0>" + code + "</ncit:NHC0>");
-        String preferredName = (String) dataMap.get("PREFERRED_NAME");
-        if (preferredName != null) {
-			//for (int i=0; i<preferredNames.size(); i++) {
-			//	String preferredName = (String) preferredNames.elementAt(i);
+        Vector preferredNames = (Vector) dataMap.get("PREFERRED_NAME");
+        if (preferredNames != null) {
+			for (int i=0; i<preferredNames.size(); i++) {
+				String preferredName = (String) preferredNames.elementAt(i);
 				out.println("        <ncit:P108>" + preferredName + "</ncit:P108>");
-			//}
+			}
 		}
         Vector fullsyns = (Vector) dataMap.get("FULL_SYN");
         if (fullsyns != null) {
@@ -1140,7 +1214,7 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 				String termType = (String) u.elementAt(2);
 
 		out.println("    <owl:Axiom>");
-		out.println("        <owl:annotatedSource rdf:resource=\"" + CTCAE_NS + "#" + code + "\"/>");
+		out.println("        <owl:annotatedSource rdf:resource=\"http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#" + code + "\"/>");
 		out.println("        <owl:annotatedProperty rdf:resource=\"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#P90\"/>");
 		out.println("        <owl:annotatedTarget rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">" + termName + "</owl:annotatedTarget>");
 		out.println("        <ncit:P383 rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">" + termType + "</ncit:P383>");
@@ -1158,7 +1232,7 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 				String def_src = (String) u.elementAt(1);
 
 		out.println("    <owl:Axiom>");
-		out.println("        <owl:annotatedSource rdf:resource=\"" + CTCAE_NS + "#" + code + "\"/>");
+		out.println("        <owl:annotatedSource rdf:resource=\"http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#" + code + "\"/>");
 		out.println("        <owl:annotatedProperty rdf:resource=\"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#P97\"/>");
 		out.println("        <owl:annotatedTarget rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">" + def + "</owl:annotatedTarget>");
 		out.println("        <ncit:P378 rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">" + def_src + "</ncit:P378>");
@@ -1175,7 +1249,7 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 				String def_src = (String) u.elementAt(1);
 
 		out.println("    <owl:Axiom>");
-		out.println("        <owl:annotatedSource rdf:resource=\"" + CTCAE_NS + "#" + code + "\"/>");
+		out.println("        <owl:annotatedSource rdf:resource=\"http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#" + code + "\"/>");
 		out.println("        <owl:annotatedProperty rdf:resource=\"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#P325\"/>");
 		out.println("        <owl:annotatedTarget rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">" + def + "</owl:annotatedTarget>");
 		out.println("        <ncit:P378 rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">" + def_src + "</ncit:P378>");
@@ -1197,7 +1271,7 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 				String p397 = (String) u.elementAt(5);
 
 		out.println("    <owl:Axiom>");
-		out.println("        <owl:annotatedSource rdf:resource=\"" + CTCAE_NS + "#" + code + "\"/>");
+		out.println("        <owl:annotatedSource rdf:resource=\"http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#" + code + "\"/>");
 		out.println("        <owl:annotatedProperty rdf:resource=\"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#P375\"/>");
 		out.println("        <owl:annotatedTarget rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">" + target + "</owl:annotatedTarget>");
 		out.println("        <ncit:P393 rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">" + p393 + "</ncit:P393>");
@@ -1238,7 +1312,7 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 	public static String encodeHTML(String line) {
 		line = line.replace("<", "&lt;");
 		line = line.replace(">", "&gt;");
-		line = line.replace("&", "&amp;");
+		//line = line.replace("&", "&amp;");
 		line = line.replace("'", "&apos;");
 		return line;
 	}
@@ -1282,11 +1356,5 @@ public class CTCAE2OWL extends BasicSPARQLUtils {
 
 }
 
-/*
-Sample ctcae2owl.properties
-CTCAE_NS=http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl
-CTCAE_VERSION=CTCAE 6.0
-CTCAE_ROOT=C220612
-MedDRA_Version=28.0
-*/
+
 
