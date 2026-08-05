@@ -24,7 +24,7 @@ public class Ctcae2owlMain {
 		String username = args[2];
 		String password = args[3];
 		CTCAE2OWL ctcae2OWL = new CTCAE2OWL(serviceUrl, named_graph, username, password);
-		String outputfile = "ctcae6.owl";
+		String outputfile = "NCIt_CTCAE_6.0.owl";
 		ctcae2OWL.run(outputfile);
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
